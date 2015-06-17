@@ -21,6 +21,11 @@ public class FuzzifierDefuzzifier {
      * @param functionBlockName
      * @return 
      */
+	 
+	public abcMethod(){
+	
+	}
+	 
     public FunctionBlock getFunctionBlock(String functionBlockName){  
        String fileName= loadFilePath();
         FIS fis = FIS.load(fileName, true);
