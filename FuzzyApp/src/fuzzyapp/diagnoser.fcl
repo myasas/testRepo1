@@ -1,0 +1,649 @@
+
+FUNCTION_BLOCK diagnoser	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	Age : REAL;
+	Sex : REAL;
+	ChestPainType : REAL;
+	BloodPressure : REAL;
+	Cholesterol : REAL;
+	RestingBloodSugar : REAL;
+	ECG : REAL;
+	Exercise : REAL;
+	MaximumHeartRate : REAL;
+	OldPeak  : REAL;
+	ThalliumScan : REAL;
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+FUZZIFY Age			// Fuzzify input variable 'Age': {'Young', 'Mild' , ' Old' , 'VeryOld'}
+	TERM Young := (0, 1) (32, 1)(38, 0) ; 
+	TERM Mild := (33, 0) (38,1) (45,0);
+	TERM  Old := (40, 0) (50, 1) (58, 0);
+	TERM  VeryOld := (52, 0) (58, 1) (120,1);	
+END_FUZZIFY
+
+FUZZIFY Sex			// Fuzzify input variable 'Sex': { 'Zero', 'One' }
+	TERM Zero := (0, 1) (0.09, 1) (0.1,0) ;
+	TERM One := (0.89,0) (0.9,1) (1,1) (1.09,1) (1.1,0);
+END_FUZZIFY
+
+FUZZIFY ChestPainType			// Fuzzify input variable 'ChestPainType': { 'One', 'Two', 'Three', 'Four' }
+	TERM One := (0, 0)(0.89,0) (0.9,1) (1, 1) (1.09,1) (1.1,0) ;
+	TERM Two := (1.89,0)(1.9,1) (2,1) (2.09,1) (2.1,0);
+	TERM Three := (2.89, 0) (2.9,1) (3, 1) (3.09,1) (3.1,0) ;
+	TERM Four := (3.89,0) (3.9,1) (4,1) (4.09,1) (4.1,0);	
+END_FUZZIFY
+
+FUZZIFY BloodPressure			// Fuzzify input variable 'BloodPressure': { 'Low', 'Medium','High', 'VeryHigh ' }
+	TERM Low := (0, 1) (120, 1) (134,0) ;
+	TERM Medium := (127,0) (134,1) (153,0);
+	TERM High := (142,0) (153, 1) (172,0) ;
+	TERM VeryHigh  := (160,0) (172,1) (300,1);	
+END_FUZZIFY
+
+FUZZIFY Cholesterol			// Fuzzify input variable 'Cholesterol': { 'Low', 'Medium','High', 'VeryHigh ' }
+	TERM Low := (0, 1) (197, 1) (200,0) ;
+	TERM Medium := (188,0) (217,1) (250,0);
+	TERM High := (217, 0) (281, 1) (307,0);
+	TERM VeryHigh  := (281,0) (350,1) (550,1);	
+END_FUZZIFY
+
+FUZZIFY RestingBloodSugar			// Fuzzify input variable 'RestingBloodSugar': { 'Zero', 'One' }
+	TERM Zero := (0, 1) (0.09, 1) (0.1,0) ;
+	TERM One :=  (0.89,0) (0.9,1)(1,1) (1.09,1)(1.1,0) ;
+END_FUZZIFY
+
+FUZZIFY ECG			// Fuzzify input variable 'ECG': { 'Zero', 'One', 'Two' }
+	TERM Zero := (-0.5, 1) (0, 1) (0.5,0) ;
+	TERM One := (0.45,0) (1,1) (1.8,0);
+	TERM Two := (1.4,0) (1.8,1) (2.5, 1);	
+END_FUZZIFY
+
+FUZZIFY Exercise			// Fuzzify input variable 'Exercise': { 'Zero', 'One' }
+	TERM Zero := (0, 1) (0.09,1) (0.1,0) ;
+	TERM One := (0.89,0) (0.9,1) (1,1) (1.09, 1)(1.1,0);
+END_FUZZIFY
+
+FUZZIFY MaximumHeartRate			// Fuzzify input variable 'MaximumHeartRate': { 'Low', 'Medium', ' High ' }
+	TERM Low := (0, 1) (100, 1) (141,0) ;
+	TERM Medium := (111,0) (141,1) (194,0);
+	TERM High := (152,0) (200,1) (500,1);	
+END_FUZZIFY
+
+FUZZIFY OldPeak 			// Fuzzify input variable 'OldPeak ': { 'Low', 'Risk', ' Terrible' }
+	TERM Low := (0, 1) (1, 1) (2,0) ;
+	TERM Risk := (1.5,0) (2.8,1) (4.2,0);
+	TERM Terrible := (2.55,0) (4,1) (6,1);
+END_FUZZIFY
+
+FUZZIFY ThalliumScan			// Fuzzify input variable 'ThalliumScan': { 'Normal', 'FixedDefect', ' ReversibleDefect' }
+	TERM Normal := (0, 1) (3, 1) (6,0) ;
+	TERM FixedDefect := (3,0) (6,1) (7,0);
+	TERM ReversibleDefect := (6,0) (7,1) (9,0);	
+END_FUZZIFY
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+	RULE 1  : IF ChestPainType IS One THEN Condition IS Healthy;
+	RULE 2  : IF ChestPainType IS Two THEN Condition IS S1; 
+	RULE 3  : IF ChestPainType IS Three THEN Condition IS S2;
+	RULE 4  : IF ChestPainType IS Four THEN Condition IS S3;
+	RULE 5  : IF ChestPainType IS Four THEN Condition IS S4; 
+	RULE 6  : IF Sex IS Zero THEN Condition IS S1;
+	RULE 7  : IF Sex IS One THEN Condition IS S2;
+	RULE 8  : IF BloodPressure IS Low THEN Condition IS Healthy; 
+	RULE 9  : IF BloodPressure IS Medium THEN Condition IS S1;
+	RULE 10 : IF BloodPressure IS High THEN Condition IS S2;
+	
+	RULE 11 : IF BloodPressure IS High THEN Condition IS S3;
+	RULE 12 : IF BloodPressure IS VeryHigh THEN Condition IS S4; 
+	RULE 13 : IF Cholesterol IS Low THEN Condition IS Healthy;
+	RULE 14 : IF Cholesterol IS Medium THEN Condition IS S1;
+	RULE 15 : IF Cholesterol IS High THEN Condition IS S2; 
+	RULE 16 : IF Cholesterol IS High THEN Condition IS S3;
+	RULE 17 : IF Cholesterol IS VeryHigh THEN Condition IS S4;
+	RULE 18 : IF RestingBloodSugar IS One THEN Condition IS S2; 
+	RULE 19 : IF ECG IS Zero THEN Condition IS Healthy;	
+	RULE 20 : IF ECG IS Zero THEN Condition IS S1;	
+	
+	RULE 21 : IF ECG IS One THEN Condition IS S2;
+	RULE 22 : IF ECG IS Two THEN Condition IS S3; 
+	RULE 23 : IF ECG IS Two THEN Condition IS S4;
+	RULE 24 : IF MaximumHeartRate IS Low THEN Condition IS Healthy;
+	RULE 25 : IF MaximumHeartRate IS Medium THEN Condition IS S1; 
+	RULE 26 : IF MaximumHeartRate IS Medium THEN Condition IS S2;
+	RULE 27 : IF MaximumHeartRate IS High THEN Condition IS S3;
+	RULE 28 : IF MaximumHeartRate IS High THEN Condition IS S4; 
+	RULE 29 : IF Exercise IS One THEN Condition IS S2;
+	RULE 30 : IF OldPeak IS Low THEN Condition IS Healthy;	
+
+	RULE 31 : IF OldPeak IS Low THEN Condition IS S1;
+	RULE 32 : IF OldPeak IS Risk THEN Condition IS S2; 
+	RULE 33 : IF OldPeak IS Risk THEN Condition IS S3;
+	RULE 34 : IF OldPeak IS Terrible THEN Condition IS S4;
+	RULE 35 : IF ThalliumScan IS Normal THEN Condition IS Healthy; 
+	RULE 36 : IF ThalliumScan IS Normal THEN Condition IS S1;
+	RULE 37 : IF ThalliumScan IS FixedDefect THEN Condition IS S2;
+	RULE 38 : IF ThalliumScan IS ReversibleDefect THEN Condition IS S3; 
+	RULE 39 : IF ThalliumScan IS ReversibleDefect THEN Condition IS S4;
+	RULE 40 : IF Age IS Young THEN Condition IS Healthy;		
+	
+	RULE 41 : IF Age IS Mild THEN Condition IS S1;	
+	RULE 42 : IF Age IS Old THEN Condition IS S2;	
+	RULE 43 : IF Age IS Old THEN Condition IS S3;	
+	RULE 44 : IF Age IS VeryOld THEN Condition IS S4;	
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserAge	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	Age : REAL;
+
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+FUZZIFY Age			// Fuzzify input variable 'Age': {'Young', 'Mild' , ' Old' , 'VeryOld'}
+	TERM Young := (0, 1) (32, 1)(38, 0) ; 
+	TERM Mild := (33, 0) (38,1) (45,0);
+	TERM  Old := (40, 0) (50, 1) (58, 0);
+	TERM  VeryOld := (52, 0) (58, 1) (120,1);	
+END_FUZZIFY
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+
+	RULE 40 : IF Age IS Young THEN Condition IS Healthy;		
+	RULE 41 : IF Age IS Mild THEN Condition IS S1;	
+	RULE 42 : IF Age IS Old THEN Condition IS S2;	
+	RULE 43 : IF Age IS Old THEN Condition IS S3;	
+	RULE 44 : IF Age IS VeryOld THEN Condition IS S4;	
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserBP	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+
+	BloodPressure : REAL;
+
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+
+FUZZIFY BloodPressure			// Fuzzify input variable 'BloodPressure': { 'Low', 'Medium','High', 'VeryHigh ' }
+	TERM Low := (0, 1) (120, 1) (134,0) ;
+	TERM Medium := (127,0) (134,1) (153,0);
+	TERM High := (142,0) (153, 1) (172,0) ;
+	TERM VeryHigh  := (160,0) (172,1) (300,1);	
+END_FUZZIFY
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+
+	RULE 8  : IF BloodPressure IS Low THEN Condition IS Healthy; 
+	RULE 9  : IF BloodPressure IS Medium THEN Condition IS S1;
+	RULE 10 : IF BloodPressure IS High THEN Condition IS S2;
+	
+	RULE 11 : IF BloodPressure IS High THEN Condition IS S3;
+	RULE 12 : IF BloodPressure IS VeryHigh THEN Condition IS S4; 
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserCL	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	Cholesterol : REAL;
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+
+FUZZIFY Cholesterol			// Fuzzify input variable 'Cholesterol': { 'Low', 'Medium','High', 'VeryHigh ' }
+	TERM Low := (0, 1) (197, 1) (200,0) ;
+	TERM Medium := (188,0) (217,1) (250,0);
+	TERM High := (217, 0) (281, 1) (307,0);
+	TERM VeryHigh  := (281,0) (350,1) (550,1);	
+END_FUZZIFY
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+	RULE 13 : IF Cholesterol IS Low THEN Condition IS Healthy;
+	RULE 14 : IF Cholesterol IS Medium THEN Condition IS S1;
+	RULE 15 : IF Cholesterol IS High THEN Condition IS S2; 
+	RULE 16 : IF Cholesterol IS High THEN Condition IS S3;
+	RULE 17 : IF Cholesterol IS VeryHigh THEN Condition IS S4;
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserECG	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	ECG : REAL;
+
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+FUZZIFY ECG			// Fuzzify input variable 'ECG': { 'Zero', 'One', 'Two' }
+	TERM Zero := (-0.5, 1) (0, 1) (0.5,0) ;
+	TERM One := (0.45,0) (1,1) (1.8,0);
+	TERM Two := (1.4,0) (1.8,1) (2.5, 1);	
+END_FUZZIFY
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+	RULE 19 : IF ECG IS Zero THEN Condition IS Healthy;	
+	RULE 20 : IF ECG IS Zero THEN Condition IS S1;	
+
+	RULE 21 : IF ECG IS One THEN Condition IS S2;
+	RULE 22 : IF ECG IS Two THEN Condition IS S3; 
+	RULE 23 : IF ECG IS Two THEN Condition IS S4;
+
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserExercise	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	Exercise : REAL;
+	
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+FUZZIFY Exercise			// Fuzzify input variable 'Exercise': { 'Zero', 'One' }
+	TERM Zero := (0, 1) (0.09,1) (0.1,0) ;
+	TERM One := (0.89,0) (0.9,1) (1,1) (1.09, 1)(1.1,0);
+END_FUZZIFY
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+
+	RULE 29 : IF Exercise IS One THEN Condition IS S2;
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserMHR	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	MaximumHeartRate : REAL;
+
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+FUZZIFY MaximumHeartRate			// Fuzzify input variable 'MaximumHeartRate': { 'Low', 'Medium', ' High ' }
+	TERM Low := (0, 1) (100, 1) (141,0) ;
+	TERM Medium := (111,0) (141,1) (194,0);
+	TERM High := (152,0) (200,1) (500,1);	
+END_FUZZIFY
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+	RULE 24 : IF MaximumHeartRate IS Low THEN Condition IS Healthy;
+	RULE 25 : IF MaximumHeartRate IS Medium THEN Condition IS S1; 
+	RULE 26 : IF MaximumHeartRate IS Medium THEN Condition IS S2;
+	RULE 27 : IF MaximumHeartRate IS High THEN Condition IS S3;
+	RULE 28 : IF MaximumHeartRate IS High THEN Condition IS S4; 
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserOP	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	OldPeak  : REAL;
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+FUZZIFY OldPeak 			// Fuzzify input variable 'OldPeak ': { 'Low', 'Risk', ' Terrible' }
+	TERM Low := (0, 1) (1, 1) (2,0) ;
+	TERM Risk := (1.5,0) (2.8,1) (4.2,0);
+	TERM Terrible := (2.55,0) (4,1) (6,1);
+END_FUZZIFY
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+	RULE 30 : IF OldPeak IS Low THEN Condition IS Healthy;	
+
+	RULE 31 : IF OldPeak IS Low THEN Condition IS S1;
+	RULE 32 : IF OldPeak IS Risk THEN Condition IS S2; 
+	RULE 33 : IF OldPeak IS Risk THEN Condition IS S3;
+	RULE 34 : IF OldPeak IS Terrible THEN Condition IS S4;
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserRBS	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+
+	RestingBloodSugar : REAL;
+
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+
+FUZZIFY RestingBloodSugar			// Fuzzify input variable 'RestingBloodSugar': { 'Zero', 'One' }
+	TERM Zero := (0, 1) (0.09, 1) (0.1,0) ;
+	TERM One :=  (0.89,0) (0.9,1)(1,1) (1.09,1)(1.1,0) ;
+END_FUZZIFY
+
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+
+	RULE 18 : IF RestingBloodSugar IS One THEN Condition IS S2; 
+
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserSex	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+
+	Sex : REAL;
+
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+FUZZIFY Sex			// Fuzzify input variable 'Sex': { 'Zero', 'One' }
+	TERM Zero := (0, 1) (0.09, 1) (0.1,0) ;
+	TERM One := (0.89,0) (0.9,1) (1,1) (1.09,1) (1.1,0);
+END_FUZZIFY
+
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+
+	RULE 6  : IF Sex IS Zero THEN Condition IS S1;
+	RULE 7  : IF Sex IS One THEN Condition IS S2;
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserTS	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	ThalliumScan : REAL;
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+FUZZIFY ThalliumScan			// Fuzzify input variable 'ThalliumScan': { 'Normal', 'FixedDefect', ' ReversibleDefect' }
+	TERM Normal := (0, 1) (3, 1) (6,0) ;
+	TERM FixedDefect := (3,0) (6,1) (7,0);
+	TERM ReversibleDefect := (6,0) (7,1) (9,0);	
+END_FUZZIFY
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+	RULE 35 : IF ThalliumScan IS Normal THEN Condition IS Healthy; 
+	RULE 36 : IF ThalliumScan IS Normal THEN Condition IS S1;
+	RULE 37 : IF ThalliumScan IS FixedDefect THEN Condition IS S2;
+	RULE 38 : IF ThalliumScan IS ReversibleDefect THEN Condition IS S3; 
+	RULE 39 : IF ThalliumScan IS ReversibleDefect THEN Condition IS S4;
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
+
+FUNCTION_BLOCK diagnoserCPType	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+
+	ChestPainType : REAL;
+
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	Condition : REAL;
+END_VAR
+
+
+FUZZIFY ChestPainType			// Fuzzify input variable 'ChestPainType': { 'One', 'Two', 'Three', 'Four' }
+	TERM One := (0, 0)(0.89,0) (0.9,1) (1, 1) (1.09,1) (1.1,0) ;
+	TERM Two := (1.89,0)(1.9,1) (2,1) (2.09,1) (2.1,0);
+	TERM Three := (2.89, 0) (2.9,1) (3, 1) (3.09,1) (3.1,0) ;
+	TERM Four := (3.89,0) (3.9,1) (4,1) (4.09,1) (4.1,0);	
+END_FUZZIFY
+
+
+DEFUZZIFY Condition			// Defzzzify output variable 'Condition' : {'Healthy', 'S1', 'S2', 'S3', 'S4' }
+	TERM Healthy := (0,1) (0.2, 1) (0.78,0) (4,0);
+	TERM S1 := (0,0) (1,1) (2,0);
+	TERM S2 := (1,0) (2,1) (3,0);
+	TERM S3 := (2,0) (3,1) (4,0);
+	TERM S4 := (3,0) (3.75,1) (4,1);	
+	
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+	RULE 1  : IF ChestPainType IS One THEN Condition IS Healthy;
+	RULE 2  : IF ChestPainType IS Two THEN Condition IS S1; 
+	RULE 3  : IF ChestPainType IS Three THEN Condition IS S2;
+	RULE 4  : IF ChestPainType IS Four THEN Condition IS S3;
+	RULE 5  : IF ChestPainType IS Four THEN Condition IS S4; 
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
